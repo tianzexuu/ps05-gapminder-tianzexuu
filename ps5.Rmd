@@ -1,0 +1,96 @@
+---
+title: "PS5: markdown, basic plots"
+author: "Tianze Xu"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r warning=FALSE, message=FALSE}
+# load libraries
+library(dplyr)
+library(ggplot2)
+```
+
+## 1) Load and check data (5pt)
+
+### You first task is to do a very simple data check:
+### 1.1) (1pt) For solving the problems, and answering the questions, create a new rmarkdown document with an appropriate title. See https://faculty.washington.edu/otoomet/info201-book/r-markdown.html#r-markdown-rstudio-creating.
+
+### 1.2) (2pt) Load data. How many rows/columns do we have?
+```{r}
+df <- read.csv('../data/gapminder.csv.bz2', sep = '\t')
+nrow(df)
+ncol(df)
+```
+There are 13055 rows and 25 columns.
+
+### 1.3) (2pt) Print a small sample of data. Does it look OK?
+```{r}
+sample_n(df, 5)
+```
+Yes, the data looks okay.
+
+## 2) Descriptive statistics (15pt)
+### 2.1) (3pt) How many countries are there in the dataset? Analyze all three: iso3, iso2 and name
+```{r}
+n_distinct(df$iso3)
+n_distinct(df$iso2)
+n_distinct(df$name)
+```
+There are 253 unique iso3 (3-letter country code), 249 unique iso2 (2-letter country code), and 250 unique country names.
+
+### 2.2) If you did this correctly, you saw that there are more iso-2 codes than names, and there are even more iso3 -codes. What is going on? Can you find it out?
+#### 2.2.a) (5pt) Find how many names are there for each iso-2 code. Are there any iso-2 codes that correspond to more than one name? What are these countries?
+```{r}
+df %>% group_by(iso2) %>%
+  summarise(name_count=n_distinct(name)) %>%
+  arrange(desc(name_count))
+
+df %>% filter(iso2=='') %>% select(iso3, iso2, name) %>% distinct()
+```
+There are 2 countries with missing iso2 values, these countries are CHANISL, GBM, KOS, NAM, and NLD_CURACAO.
+
+#### 2.2.b) (5pt) Now repeat the same for name and iso3-code. Are there country names that have more than one iso3-code? What are these countries? Hint: two of these entitites are CHANISL and NLD CURACAO.
+```{r}
+df %>% group_by(name) %>%
+  summarise(iso3_count=n_distinct(iso3)) %>%
+  arrange(desc(iso3_count))
+
+df %>% filter(name=='') %>% select(iso3, iso2, name) %>% distinct()
+```
+There are 4 countries that have iso3-code, but without names. These countries are CHANISL, GBM, KOS, and NLD_CURACAO.
+
+### 2.3) (2pt) What is the minimum and maximum year in these data?
+```{r}
+df %>% filter(!is.na(time)) %>%
+  summarise(min = min(time),
+            max = max(time))
+```
+
+## 3) CO2 emissions (30pt)
+### Next, let’s analyze CO2 emissions.
+### 3.1) (2pt) How many missing co2 emissions are there for each year? Analyze both missing CO2 and co2_PC. Which years have most missing data?
+```{r}
+df %>% group_by(time) %>%
+  summarise(co2_na_count = sum(is.na(co2) | is.na(co2_PC))) %>%
+  arrange(desc(co2_na_count))
+```
+Year 2017, 2018, and 2019 have the most missing CO2 data.
+
+## 3.2) (5pt) Make a plot of total CO2 emissions over time for the U.S, China, and India. Add a few more countries of your choice. Explain what do you see.
+```{r}
+# calculate co2 numbers by country
+df_co2 <- df %>% filter(iso2 %in% c('US', 'CN', 'IN', 'GB', 'FR', 'CA') & !is.na(co2)) %>%
+            group_by(name) %>%
+            summarise(co2_total=sum(co2))
+
+# bar plot using ggplot library
+ggplot(data=df_co2, aes(x=name, y=co2_total)) +
+  geom_bar(stat="identity")
+```
+
+
