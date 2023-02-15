@@ -81,16 +81,79 @@ df %>% group_by(time) %>%
 ```
 Year 2017, 2018, and 2019 have the most missing CO2 data.
 
-## 3.2) (5pt) Make a plot of total CO2 emissions over time for the U.S, China, and India. Add a few more countries of your choice. Explain what do you see.
+### 3.2) (5pt) Make a plot of total CO2 emissions over time for the U.S, China, and India. Add a few more countries of your choice. Explain what do you see.
 ```{r}
 # calculate co2 numbers by country
-df_co2 <- df %>% filter(iso2 %in% c('US', 'CN', 'IN', 'GB', 'FR', 'CA') & !is.na(co2)) %>%
+df_co2 <- df %>% filter(iso2 %in% c('US', 'CN', 'IN', 'SG', 'FR', 'CA') & !is.na(co2)) %>%
             group_by(name) %>%
             summarise(co2_total=sum(co2))
 
 # bar plot using ggplot library
 ggplot(data=df_co2, aes(x=name, y=co2_total)) +
+  geom_bar(stat="identity") +
+  theme(axis.text.x = element_text(angle = 30))
+```
+From the above bar chart, we see US has the highest total CO2 emissions. China has the 2nd highest CO2 emissions. Singapore has the lowest CO2 emissions.
+
+### 3.3) (5pt) Now let’s analyze the CO2 emissions per capita (co2_PC). Make a similar plot of the same countries. What does this figure suggest?
+```{r}
+# calculate co2 numbers by country
+df_co2_pc <- df %>% filter(iso2 %in% c('US', 'CN', 'IN', 'SG', 'FR', 'CA') & !is.na(co2_PC)) %>%
+            group_by(name) %>%
+            summarise(co2_pc_avg=mean(co2_PC))
+
+# bar plot using ggplot library
+ggplot(data=df_co2_pc, aes(x=name, y=co2_pc_avg)) +
+  geom_bar(stat="identity") +
+  theme(axis.text.x = element_text(angle = 30))
+```
+The above figure suggests that US still has the highest CO2 emissions per capita, while India has the lowest CO2 emissions per capita.
+
+### 3.4) (6pt) Compute average CO2 emissions per capita across the continents (assume region is the same as continent). Comment what do you see.
+## Note: just compute averages over countries and ignore the fact that countries are of different size.
+## Hint: Americas 2016 should be 4.80.
+```{r}
+# calculate co2 numbers by region
+df_co2_pc_region <- df %>% filter(region!='' & !is.na(co2_PC)) %>%
+                      group_by(region) %>%
+                      summarise(co2_pc_avg=mean(co2_PC))
+
+ggplot(data=df_co2_pc_region, aes(x=region, y=co2_pc_avg)) +
   geom_bar(stat="identity")
+```
+From the above plot, we see Europe is the continent that has the highest CO2 emissions per capita, while Africa has the lowest.
+
+### 3.5) (7pt) Make a barplot where you show the previous results–average CO2 emissions per capita across continents in 1960 and 2016.
+## Hint: it should look something along these lines:
+```{r}
+df_co2_pc_region_year <- df %>% filter(region!='' & !is.na(co2_PC) & time %in% c(1960, 2016)) %>%
+                      group_by(region, time) %>%
+                      summarise(co2_pc_avg=mean(co2_PC))
+df_co2_pc_region_year$Year <- as.factor(df_co2_pc_region_year$time)
+
+ggplot(data=df_co2_pc_region_year, aes(x=region, y=co2_pc_avg, fill=Year)) +
+  geom_bar(position = "dodge", stat="identity") +
+  labs(x='Continent', y='Average CO2 per capita')
+```
+
+### 3.6) Which countries are the three largest, and three smallest CO2 emitters (in terms of CO2 per capita) in 2019 for each continent? (Assume region is continent)
+```{r}
+df %>% filter(time==2019 & !is.na(co2_PC))
+```
+Since all the co2_PC values in year 2019 are missing, we are not able to find the answer using this dataset.
+
+## 4) GDP per capita (50pt)
+### Let’s look at GDP per capita (GDP_PC).
+### 4.1) (8pt) Make a scatterplot of GDP per capita versus life expectancy by country, using data for 1960. Make the point size dependent on the country size, and color those according to the continent. Feel free to adjust the plot in other ways to make it better.
+### Comment what do you see there.
+```{r}
+df_1960 <- df %>% filter(time==1960) %>%
+            group_by(name) %>%
+            summarise(GDP_PC)
+df_1960
+
+#ggplot(mtcars, aes(x=wt, y=mpg)) +
+ # geom_point(size=2, shape=23)
 ```
 
 
