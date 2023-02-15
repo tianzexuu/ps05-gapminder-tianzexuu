@@ -147,13 +147,25 @@ Since all the co2_PC values in year 2019 are missing, we are not able to find th
 ### 4.1) (8pt) Make a scatterplot of GDP per capita versus life expectancy by country, using data for 1960. Make the point size dependent on the country size, and color those according to the continent. Feel free to adjust the plot in other ways to make it better.
 ### Comment what do you see there.
 ```{r}
-df_1960 <- df %>% filter(time==1960) %>%
-            group_by(name) %>%
-            summarise(GDP_PC)
-df_1960
+df_1960 <- df %>% filter(time==1960 & !is.na(name) & !is.na(GDP_PC) & !is.na(lifeExpectancy)) 
 
-#ggplot(mtcars, aes(x=wt, y=mpg)) +
- # geom_point(size=2, shape=23)
+ggplot(df_1960, aes(x=GDP_PC, y=lifeExpectancy)) +
+  geom_point(aes(size=totalPopulation, color=region))
+```
+- I see some Asian countries with green color that have large population, low GDP per capita, and low life expectancy.
+- Many African countries with red color have low GDP per capita and low life expectancy.
+- Many Europe countries with blue color have high GDP per capita and high life expectancy.
+
+### 4.2) (4pt) Make a similar plot, but this time use 2019 data only.
+```{r}
+df_2019 <- df %>% filter(time==2019 & !is.na(name) & !is.na(GDP_PC) & !is.na(lifeExpectancy)) 
+
+ggplot(df_2019, aes(x=GDP_PC, y=lifeExpectancy)) +
+  geom_point(aes(size=totalPopulation, color=region))
+```
+### 4.3) (6pt) Compare these two plots and comment what do you see. How has world developed through the last 60 years?
+```{r}
+
 ```
 
 
